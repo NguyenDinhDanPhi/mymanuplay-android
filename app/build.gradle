@@ -1,6 +1,21 @@
-plugins {
-    id 'com.android.application'
+buildscript {
+    repositories {
+        jcenter()
+        google()
+        maven { url 'https://maven.fabric.io/public' }
+    }
+
+    dependencies {
+        classpath 'io.fabric.tools:gradle:1.27.1'
+
+    }
 }
+//plugins {
+//    id 'com.android.application'
+//   // id 'io.fabric'
+//}
+apply plugin: 'com.android.application'
+apply plugin: 'io.fabric'
 
 android {
     namespace 'eu.tutorial.mymanuplay_android'
@@ -12,28 +27,131 @@ android {
         targetSdk 33
         versionCode 1
         versionName "1.0"
-
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
     }
 
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            lintOptions {
+                disable 'MissingTranslation'
+            }
         }
     }
+    lintOptions {
+        checkReleaseBuilds false
+        // Or, if you prefer, you can continue to check for errors in release builds,
+        // but continue the build even when errors are found:
+        abortOnError false
+    }
+    dexOptions {//added because of dex file issue
+        preDexLibraries = false
+    }
+    packagingOptions{//Added because of NDK Issue
+        doNotStrip '*/mips/*.so'
+        doNotStrip '*/mips64/*.so'
+    }
+    useLibrary 'org.apache.http.legacy'// for multipart API
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
 }
-
+configurations.all {
+    resolutionStrategy.eachDependency { details ->
+        def requested = details.requested
+        if (requested.group == 'com.android.support' && (requested.name != 'multidex' && requested.name != 'multidex-instrumentation')) {
+            details.useVersion "26.0.0"
+        }
+    }
+}
 dependencies {
-
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    //compile rootProject.ext.appCompat
+  //  implementation rootProject.ext.cardView
+    //compile rootProject.ext.designCompat
+//    repositories {
+//        maven { url "https://dl.bintray.com/hani-momanii/maven" }
+//    }
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.5.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    //implementation project(':coverflow')
+//    implementation project(':swipe-reveal-layout')//Swipe Refresh Layout
+//    implementation project(':filepicker')//File Picker
+//    implementation project(':carousel')//Carousal Layout
+//    implementation files('libs/universal-image-loader-1.9.3.jar')//Image Loader
+//    implementation project(':spyglass')//for mentions and hash tag
+//    implementation project(':GaiaLibrary')//Bluetooth library
+//    implementation project(':VMUpgradeLibrary')//Firmware upgrade library
+//    implementation project(':link_page_library')//Meta link to get Web page info
+
+    implementation 'com.android.support:appcompat-v7:26.0.0'
+    /*Utils*/
+    implementation 'com.elmargomez.typer:typerlib:1.0.0'//
+    implementation 'com.google.guava:guava:18.0'//
+    implementation 'com.android.support:multidex:1.0.1'//Multidex
+    implementation 'com.afollestad:easyvideoplayer:0.3.0'//Easy Video Player
+    implementation 'com.writingminds:FFmpegAndroid:0.3.2'//FFMPEG
+    /*Social Media & Firebase*/
+    implementation 'com.facebook.android:facebook-android-sdk:4.8.2'//Facebook SDK
+    implementation 'com.google.android.gms:play-services-auth:10.2.1'//Google PlayService
+    implementation 'com.google.android.gms:play-services-ads:1.6.1'
+    implementation 'com.google.firebase:firebase-messaging:10.2.1'//FCM
+    implementation('com.twitter.sdk.android:twitter:1.8.0@aar') {//Twitter
+        transitive = true;
+    }
+    implementation('com.crashlytics.sdk.android:crashlytics:2.6.5@aar') {//FCM For Crashlytics
+        transitive = true;
+    }
+    /*Music Provider*/
+    implementation(name: 'spotify-auth-1.0.0-beta12', ext: 'aar')//Spotify
+    implementation 'com.spotify.sdk:spotify-player-24-noconnect-2.20b@aar'//Spotify
+//    implementation project(':deezer-sdk-0.10.20')//Deezer
+    /*Layouts & Design*/
+    implementation 'com.android.support:recyclerview-v7:26.0.0'//Recycleview
+    implementation 'com.android.support:palette-v7:26.0.0'//Support Design
+    implementation 'com.android.support:design:26.0.0'//Support Design
+    implementation 'com.sothree.slidinguppanel:library:3.3.1'//Sliding Up Panel
+    implementation 'info.hoang8f:android-segmented:1.0.6'//Segment Group
+    implementation 'com.android.support.constraint:constraint-layout:1.0.2'//Constraint Layout
+    implementation 'de.hdodenhof:circleimageview:2.1.0'//Circular Imageview
+    implementation 'pl.bclogic:pulsator4droid:1.0.3'//Pluse Layout
+    implementation 'com.intuit.sdp:sdp-android:1.0.3'//SDP
+    implementation 'me.everything:overscroll-decor-android:1.0.4'//Overscroll Decor
+    implementation 'hani.momanii.supernova_emoji_library:supernova-emoji-library:0.0.2'//Emoji Library
+    /*Payment Gateways*/
+    implementation 'com.stripe:stripe-android:4.1.5'//Stripe
+    implementation ('com.paypal.sdk:paypal-android-sdk:2.16.0') {
+        exclude group: 'io.card'
+        //exclude module: 'okio'
+    }
+    /*For API*/
+    //implementation project(':volley')
+//    implementation project(':spotify-api')//Spotify
+    implementation files('libs/httpmime-4.1.1.jar')//httpmime for API call
+
+    //Paypal
+    //compile 'com.azoft.carousellayoutmanager:carousel:1.1.6'//Carousal
+    //compile 'com.github.hiteshsondhi88.libffmpeg:FFmpegAndroid:0.2.5'//Video Audio Merge
+    /*compile('org.apache.httpcomponents:httpmime:4.3') {//For File Uploading Service
+        exclude module: "httpclient"
+    }*/
+    //compile project(':deezer-sdk-0.11.1')//Deezer
+    testImplementation 'junit:junit:4.12'
+    implementation ('com.tapdaq.sdk:Tapdaq-BaseSDK:6.4.0'){
+        exclude group: 'com.google.android.gms'
+    }
+    implementation ('com.tapdaq.sdk:TapdaqAdMobAdapter:6.4.0'){
+        exclude group: 'com.google.android.gms'
+    }
 }
